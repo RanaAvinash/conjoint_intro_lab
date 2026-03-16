@@ -30,7 +30,15 @@ st.write("Current Attributes")
 st.write(st.session_state.attributes)
 
 attributes = st.session_state.attributes
+from modules.design_generator import generate_profiles
 
+if st.button("Generate Profiles"):
+
+    profiles = generate_profiles(attributes)
+
+    st.session_state["profiles"] = profiles
+
+    st.dataframe(profiles)
 st.header("2️⃣ Generate Profiles")
 
 if st.button("Generate Profiles"):
