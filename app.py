@@ -12,15 +12,21 @@ from modules.rank_conjoint import estimate_rank_utilities
 from modules.rank_simulator import simulate_rank_data
 
 st.title("Conjoint Analysis Teaching Lab")
+
+# ------------------------------------------------
+# Select Method
+# ------------------------------------------------
+
 st.sidebar.header("Conjoint Method")
 
 method = st.sidebar.radio(
     "Select Conjoint Method",
     ["Choice Based Conjoint (CBC)", "Rank Based Conjoint"]
 )
-# -----------------------------
-# 1️⃣ ATTRIBUTE BUILDER
-# -----------------------------
+
+# ------------------------------------------------
+# ATTRIBUTE BUILDER
+# ------------------------------------------------
 
 st.header("1️⃣ Define Attributes")
 
@@ -28,6 +34,7 @@ if "attributes" not in st.session_state:
     st.session_state.attributes = {}
 
 attr_name = st.text_input("Attribute Name")
+
 levels = st.text_input("Levels (comma separated)")
 
 if st.button("Add Attribute"):
@@ -39,11 +46,12 @@ if st.button("Add Attribute"):
 attributes = st.session_state.attributes
 
 st.subheader("Current Attributes")
+
 st.write(attributes)
 
-# -----------------------------
-# 2️⃣ GENERATE PROFILES
-# -----------------------------
+# ------------------------------------------------
+# PROFILE GENERATION
+# ------------------------------------------------
 
 st.header("2️⃣ Generate Profiles")
 
@@ -54,56 +62,66 @@ if st.button("Generate Profiles") and attributes:
     st.session_state["profiles"] = profiles
 
     st.subheader("Generated Profiles")
+
     st.dataframe(profiles)
-st.subheader("Simulate Rank Data")
 
-n_resp = st.slider(
-    "Number of Simulated Respondents",
-    20, 500, 100
-)
-
-if st.button("Simulate Rank Dataset"):
-
-    rank_data, true_utils = simulate_rank_data(
-        profiles,
-        n_resp
-    )
-
-    st.session_state["rank_data"] = rank_data
-
-    st.subheader("Simulated Rank Dataset")
-
-    st.dataframe(rank_data.head())
-
-    st.write("True Utilities Used in Simulation")
-
-    st.write(true_utils)
+# ------------------------------------------------
+# RANK BASED CONJOINT
+# ------------------------------------------------
 
 if method == "Rank Based Conjoint":
 
-    st.header("Rank the Product Profiles")
+    st.header("3️⃣ Rank Based Conjoint")
 
     if "profiles" in st.session_state:
 
         profiles = st.session_state["profiles"]
 
+        st.subheader("Product Profiles")
+
         st.dataframe(profiles)
 
-        ranks = []
+        # ------------------------------
+        # Rank Data Simulation
+        # ------------------------------
 
-        for i in profiles["Profile"]:
+        st.subheader("Simulate Rank Data")
 
-            r = st.number_input(
-                f"Rank for Profile {i}",
-                min_value=1,
-                max_value=len(profiles),
-                value=i,
-                key=f"rank_{i}"
+        n_resp = st.slider(
+            "Number of Simulated Respondents",
+            20, 500, 100
+        )
+
+        if st.button("Simulate Rank Dataset"):
+
+            rank_data, true_utils = simulate_rank_data(
+                profiles,
+                n_resp
             )
 
-            ranks.append(r)
+            st.session_state["rank_data"] = rank_data
 
-        if st.button("Estimate Utilities from Ranking"):
+            st.subheader("Simulated Rank Dataset")
+
+            st.dataframe(rank_data.head())
+
+            st.write("True Utilities Used in Simulation")
+
+            st.write(true_utils)
+
+        # ------------------------------
+        # Estimate Utilities
+        # ------------------------------
+
+        if "rank_data" in st.session_state:
+
+            st.subheader("Estimate Utilities from Simulated Rankings")
+
+            rank_data = st.session_state["rank_data"]
+
+            mean_ranks = rank_data.groupby("Profile")["Rank"].mean()
+
+            ranks = mean_ranks.values
 
             utilities = estimate_rank_utilities(ranks, profiles)
 
@@ -117,101 +135,105 @@ if method == "Rank Based Conjoint":
 
             st.plotly_chart(fig)
 
+            # ------------------------------
+            # Attribute Importance
+            # ------------------------------
+
             importance = calculate_importance(utilities)
 
             st.subheader("Attribute Importance")
 
             st.dataframe(importance)
-# -----------------------------
-# 3️⃣ GENERATE CBC TASKS
-# -----------------------------
+
+# ------------------------------------------------
+# CHOICE BASED CONJOINT
+# ------------------------------------------------
+
 if method == "Choice Based Conjoint (CBC)":
+
+    st.header("3️⃣ Choice Tasks")
+
     if "profiles" in st.session_state:
 
-        st.header("3️⃣ Choice Tasks")
-    
         profiles = st.session_state["profiles"]
-    
+
         tasks = generate_choice_tasks(profiles)
-    
+
         st.session_state["tasks"] = tasks
-    
+
         st.dataframe(tasks)
-    
+
         responses = []
-    
+
         for task in tasks["Task"].unique():
-    
+
             subset = tasks[tasks["Task"] == task]
-    
+
             choice = st.radio(
                 f"Select preferred option for Task {task}",
                 subset["Profile"].tolist(),
                 key=f"task{task}"
             )
-    
+
             responses.append(choice)
 
-    # -----------------------------
-    # 4️⃣ SIMULATE RESPONDENTS
-    # -----------------------------
+        # ------------------------------
+        # Simulate Respondents
+        # ------------------------------
 
-    st.header("4️⃣ Simulate Respondent Data")
+        st.header("4️⃣ Simulate Respondent Data")
 
-    n_resp = st.slider("Number of Respondents", 50, 500, 100)
+        n_resp = st.slider("Number of Respondents", 50, 500, 100)
 
-    if st.button("Simulate Choice Data"):
+        if st.button("Simulate Choice Data"):
 
-        simulated = simulate_choices(tasks, n_resp)
+            simulated = simulate_choices(tasks, n_resp)
 
-        st.session_state["simulated"] = simulated
+            st.session_state["simulated"] = simulated
 
-        st.subheader("Simulated Data")
-        st.dataframe(simulated.head())
+            st.subheader("Simulated Data")
 
-# -----------------------------
-# 5️⃣ ESTIMATE UTILITIES
-# -----------------------------
+            st.dataframe(simulated.head())
 
-if "simulated" in st.session_state:
+        # ------------------------------
+        # Estimate Utilities
+        # ------------------------------
 
-    st.header("5️⃣ Estimate Utilities")
+        if "simulated" in st.session_state:
 
-    simulated = st.session_state["simulated"]
-    profiles = st.session_state["profiles"]
+            st.header("5️⃣ Estimate Utilities")
 
-    utilities = estimate_mnl(simulated, profiles)
+            simulated = st.session_state["simulated"]
 
-    st.session_state["utilities"] = utilities
+            utilities = estimate_mnl(simulated, profiles)
 
-    st.subheader("Estimated Utilities")
-    st.dataframe(utilities)
+            st.session_state["utilities"] = utilities
 
-    fig = plot_utilities(utilities)
+            st.subheader("Estimated Utilities")
 
-    st.plotly_chart(fig)
+            st.dataframe(utilities)
 
-# -----------------------------
-# 6️⃣ ATTRIBUTE IMPORTANCE
-# -----------------------------
+            fig = plot_utilities(utilities)
 
-if "utilities" in st.session_state:
+            st.plotly_chart(fig)
 
-    st.header("6️⃣ Attribute Importance")
+            # ------------------------------
+            # Attribute Importance
+            # ------------------------------
 
-    utilities = st.session_state["utilities"]
+            importance = calculate_importance(utilities)
 
-    importance = calculate_importance(utilities)
+            st.subheader("Attribute Importance")
 
-    st.dataframe(importance)
+            st.dataframe(importance)
 
-# -----------------------------
-# 7️⃣ MARKET SIMULATOR
-# -----------------------------
+# ------------------------------------------------
+# MARKET SIMULATOR
+# ------------------------------------------------
 
 if "utilities" in st.session_state and attributes:
 
-    st.header("7️⃣ Market Simulator")
+    st.header("6️⃣ Market Simulator")
 
     utilities = st.session_state["utilities"]
 
