@@ -55,3 +55,8 @@ if st.button("Generate Profiles"):
         )
 
         choices.append(choice)
+    importance = calculate_importance(utilities)
+
+    st.header("Attribute Importance")
+
+    st.dataframe(importance)
