@@ -11,13 +11,16 @@ from modules.visualization import plot_utilities
 
 st.title("Conjoint Analysis Teaching Lab")
 
+# -----------------------------
+# 1️⃣ ATTRIBUTE BUILDER
+# -----------------------------
+
 st.header("1️⃣ Define Attributes")
 
 if "attributes" not in st.session_state:
     st.session_state.attributes = {}
 
-attr_name = st.text_input("Attribute name")
-
+attr_name = st.text_input("Attribute Name")
 levels = st.text_input("Levels (comma separated)")
 
 if st.button("Add Attribute"):
@@ -26,87 +29,41 @@ if st.button("Add Attribute"):
             l.strip() for l in levels.split(",")
         ]
 
-st.write("Current Attributes")
-st.write(st.session_state.attributes)
-
 attributes = st.session_state.attributes
-from modules.design_generator import generate_profiles
 
-if st.button("Generate Profiles"):
+st.subheader("Current Attributes")
+st.write(attributes)
+
+# -----------------------------
+# 2️⃣ GENERATE PROFILES
+# -----------------------------
+
+st.header("2️⃣ Generate Profiles")
+
+if st.button("Generate Profiles") and attributes:
 
     profiles = generate_profiles(attributes)
 
     st.session_state["profiles"] = profiles
 
-    st.dataframe(profiles)
-st.header("2️⃣ Generate Profiles")
-
-if st.button("Generate Profiles"):
-
-    profiles = generate_profiles(attributes)
-
+    st.subheader("Generated Profiles")
     st.dataframe(profiles)
 
-    st.header("3️⃣ Choice Tasks")
-
-    tasks = generate_choice_tasks(profiles)
-
-    st.dataframe(tasks)
-
-    choices=[]
-
-    for task in tasks["Task"].unique():
-
-        subset = tasks[tasks["Task"]==task]
-
-        choice = st.radio(
-            f"Choose preferred option for Task {task}",
-            subset["Profile"].tolist()
-        )
-
-        choices.append(choice)
-    importance = calculate_importance(utilities)
-
-    st.header("Attribute Importance")
-
-    st.dataframe(importance)
-st.header("Market Simulator")
-
-products=[]
-
-for i in range(3):
-
-    st.subheader(f"Product {i+1}")
-
-    product={}
-
-    for attr in attributes:
-
-        product[attr]=st.selectbox(
-            attr,
-            attributes[attr],
-            key=f"{attr}{i}"
-        )
-
-    products.append(product)
-
-products_df=pd.DataFrame(products)
-
-if st.button("Simulate Market Share"):
-
-    result=market_share(products_df,utilities)
-
-    st.dataframe(result)
-
-from modules.importance import calculate_importance
-
-from modules.cbc_tasks import generate_choice_tasks
+# -----------------------------
+# 3️⃣ GENERATE CBC TASKS
+# -----------------------------
 
 if "profiles" in st.session_state:
 
-    tasks = generate_choice_tasks(st.session_state["profiles"])
+    st.header("3️⃣ Choice Tasks")
 
-    st.subheader("Choice Tasks")
+    profiles = st.session_state["profiles"]
+
+    tasks = generate_choice_tasks(profiles)
+
+    st.session_state["tasks"] = tasks
+
+    st.dataframe(tasks)
 
     responses = []
 
@@ -116,13 +73,99 @@ if "profiles" in st.session_state:
 
         choice = st.radio(
             f"Select preferred option for Task {task}",
-            subset["Profile"].tolist()
+            subset["Profile"].tolist(),
+            key=f"task{task}"
         )
 
         responses.append(choice)
 
-importance = calculate_importance(utilities)
+    # -----------------------------
+    # 4️⃣ SIMULATE RESPONDENTS
+    # -----------------------------
 
-st.subheader("Attribute Importance")
+    st.header("4️⃣ Simulate Respondent Data")
 
-st.dataframe(importance)
+    n_resp = st.slider("Number of Respondents", 50, 500, 100)
+
+    if st.button("Simulate Choice Data"):
+
+        simulated = simulate_choices(tasks, n_resp)
+
+        st.session_state["simulated"] = simulated
+
+        st.subheader("Simulated Data")
+        st.dataframe(simulated.head())
+
+# -----------------------------
+# 5️⃣ ESTIMATE UTILITIES
+# -----------------------------
+
+if "simulated" in st.session_state:
+
+    st.header("5️⃣ Estimate Utilities")
+
+    simulated = st.session_state["simulated"]
+    profiles = st.session_state["profiles"]
+
+    utilities = estimate_mnl(simulated, profiles)
+
+    st.session_state["utilities"] = utilities
+
+    st.subheader("Estimated Utilities")
+    st.dataframe(utilities)
+
+    fig = plot_utilities(utilities)
+
+    st.plotly_chart(fig)
+
+# -----------------------------
+# 6️⃣ ATTRIBUTE IMPORTANCE
+# -----------------------------
+
+if "utilities" in st.session_state:
+
+    st.header("6️⃣ Attribute Importance")
+
+    utilities = st.session_state["utilities"]
+
+    importance = calculate_importance(utilities)
+
+    st.dataframe(importance)
+
+# -----------------------------
+# 7️⃣ MARKET SIMULATOR
+# -----------------------------
+
+if "utilities" in st.session_state and attributes:
+
+    st.header("7️⃣ Market Simulator")
+
+    utilities = st.session_state["utilities"]
+
+    products = []
+
+    for i in range(3):
+
+        st.subheader(f"Product {i+1}")
+
+        product = {}
+
+        for attr in attributes:
+
+            product[attr] = st.selectbox(
+                attr,
+                attributes[attr],
+                key=f"{attr}_{i}"
+            )
+
+        products.append(product)
+
+    products_df = pd.DataFrame(products)
+
+    if st.button("Simulate Market Share"):
+
+        result = market_share(products_df, utilities)
+
+        st.subheader("Predicted Market Share")
+
+        st.dataframe(result)
