@@ -1,6 +1,6 @@
 import itertools
 import pandas as pd
-
+from itertools import product
 def generate_profiles(attributes: dict) -> pd.DataFrame:
     """
     Generate full factorial profiles
@@ -12,5 +12,5 @@ def generate_profiles(attributes: dict) -> pd.DataFrame:
 
     df = pd.DataFrame(combinations, columns=keys)
     df["Profile"] = range(1, len(df)+1)
-
+    combinations = list(product(*values))
     return df
