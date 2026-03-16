@@ -13,21 +13,23 @@ st.title("Conjoint Analysis Teaching Lab")
 
 st.header("1️⃣ Define Attributes")
 
-n_attr = st.number_input("Number of Attributes",1,5,3)
+if "attributes" not in st.session_state:
+    st.session_state.attributes = {}
 
-attributes = {}
+attr_name = st.text_input("Attribute name")
 
-for i in range(n_attr):
+levels = st.text_input("Levels (comma separated)")
 
-    attr = st.text_input(f"Attribute {i+1} Name",key=f"a{i}")
+if st.button("Add Attribute"):
+    if attr_name and levels:
+        st.session_state.attributes[attr_name] = [
+            l.strip() for l in levels.split(",")
+        ]
 
-    levels = st.text_input(
-        f"Levels for {attr} (comma separated)",
-        key=f"l{i}"
-    )
+st.write("Current Attributes")
+st.write(st.session_state.attributes)
 
-    if attr and levels:
-        attributes[attr] = [x.strip() for x in levels.split(",")]
+attributes = st.session_state.attributes
 
 st.header("2️⃣ Generate Profiles")
 
