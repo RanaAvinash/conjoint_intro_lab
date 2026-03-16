@@ -1,29 +1,29 @@
 import numpy as np
 import pandas as pd
 
-def simulate_choices(tasks,n_resp=100):
+def simulate_choices(tasks, n_resp=100):
 
-    data=[]
+    rows = []
 
     for r in range(n_resp):
 
         for task in tasks["Task"].unique():
 
-            subset = tasks[tasks["Task"]==task]
+            subset = tasks[tasks["Task"] == task]
 
-            utilities = np.random.normal(0,1,len(subset))
+            utilities = np.random.normal(0, 1, len(subset))
 
-            probs = np.exp(utilities)/np.sum(np.exp(utilities))
+            probs = np.exp(utilities) / np.sum(np.exp(utilities))
 
-            choice = np.random.choice(subset["Profile"],p=probs)
+            chosen = np.random.choice(subset.index, p=probs)
 
-            for p in subset["Profile"]:
+            for i, row in subset.iterrows():
 
-                data.append({
-                    "Respondent":r,
-                    "Task":task,
-                    "Profile":p,
-                    "Choice":1 if p==choice else 0
+                rows.append({
+                    "Respondent": r,
+                    "Task": task,
+                    "Profile": row["Profile"],
+                    "Choice": 1 if i == chosen else 0
                 })
 
-    return pd.DataFrame(data)
+    return pd.DataFrame(rows)
