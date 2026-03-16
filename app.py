@@ -89,7 +89,7 @@ if method == "Rank Based Conjoint":
 
         n_resp = st.slider(
             "Number of Simulated Respondents",
-            20, 500, 100
+            1, 500, 500
         )
 
         if st.button("Simulate Rank Dataset"):
