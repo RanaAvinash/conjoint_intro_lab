@@ -97,3 +97,11 @@ if st.button("Simulate Market Share"):
     result=market_share(products_df,utilities)
 
     st.dataframe(result)
+
+from modules.importance import calculate_importance
+
+importance = calculate_importance(utilities)
+
+st.subheader("Attribute Importance")
+
+st.dataframe(importance)
