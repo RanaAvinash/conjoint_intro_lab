@@ -55,6 +55,30 @@ if st.button("Generate Profiles") and attributes:
 
     st.subheader("Generated Profiles")
     st.dataframe(profiles)
+st.subheader("Simulate Rank Data")
+
+n_resp = st.slider(
+    "Number of Simulated Respondents",
+    20, 500, 100
+)
+
+if st.button("Simulate Rank Dataset"):
+
+    rank_data, true_utils = simulate_rank_data(
+        profiles,
+        n_resp
+    )
+
+    st.session_state["rank_data"] = rank_data
+
+    st.subheader("Simulated Rank Dataset")
+
+    st.dataframe(rank_data.head())
+
+    st.write("True Utilities Used in Simulation")
+
+    st.write(true_utils)
+
 if method == "Rank Based Conjoint":
 
     st.header("Rank the Product Profiles")
