@@ -9,6 +9,8 @@ from modules.importance import calculate_importance
 from modules.market_simulator import market_share
 from modules.visualization import plot_utilities
 from modules.rank_conjoint import estimate_rank_utilities
+from modules.rank_simulator import simulate_rank_data
+
 st.title("Conjoint Analysis Teaching Lab")
 st.sidebar.header("Conjoint Method")
 
