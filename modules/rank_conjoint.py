@@ -1,23 +1,30 @@
 import pandas as pd
 import statsmodels.api as sm
 
-def estimate_rank_utilities(rank_data, design):
 
-    data = design.copy()
-    data["Rank"] = rank_data
+def estimate_rank_utilities(ranks, profiles):
+
+    df = profiles.copy()
+
+    df["Rank"] = ranks
 
     X = pd.get_dummies(
-        data.drop(columns=["Profile","Rank"]),
+        df.drop(columns=["Profile", "Rank"]),
         drop_first=True
     )
 
-    y = data["Rank"]
+    X = X.astype(float)
 
-    model = sm.OLS(y, sm.add_constant(X))
+    y = df["Rank"].astype(float)
+
+    X = sm.add_constant(X)
+
+    model = sm.OLS(y, X)
+
     result = model.fit()
 
     utilities = pd.DataFrame({
-        "Feature": X.columns,
+        "Feature": X.columns[1:],
         "Utility": result.params[1:]
     })
 
