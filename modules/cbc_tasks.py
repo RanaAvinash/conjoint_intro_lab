@@ -1,16 +1,16 @@
 import pandas as pd
 import numpy as np
 
-def generate_choice_tasks(profiles,n_tasks=5,alts=3):
+def generate_choice_tasks(profiles, n_tasks=5, alts=3):
 
-    tasks=[]
+    tasks = []
 
     for t in range(n_tasks):
 
-        sample = profiles.sample(alts)
+        subset = profiles.sample(alts).copy()
 
-        sample["Task"]=t+1
+        subset["Task"] = t + 1
 
-        tasks.append(sample)
+        tasks.append(subset)
 
-    return pd.concat(tasks)
+    return pd.concat(tasks).reset_index(drop=True)
