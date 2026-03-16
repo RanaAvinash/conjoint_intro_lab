@@ -102,29 +102,29 @@ if method == "Rank Based Conjoint":
 if method == "Choice Based Conjoint (CBC)":
     if "profiles" in st.session_state:
 
-    st.header("3️⃣ Choice Tasks")
-
-    profiles = st.session_state["profiles"]
-
-    tasks = generate_choice_tasks(profiles)
-
-    st.session_state["tasks"] = tasks
-
-    st.dataframe(tasks)
-
-    responses = []
-
-    for task in tasks["Task"].unique():
-
-        subset = tasks[tasks["Task"] == task]
-
-        choice = st.radio(
-            f"Select preferred option for Task {task}",
-            subset["Profile"].tolist(),
-            key=f"task{task}"
-        )
-
-        responses.append(choice)
+        st.header("3️⃣ Choice Tasks")
+    
+        profiles = st.session_state["profiles"]
+    
+        tasks = generate_choice_tasks(profiles)
+    
+        st.session_state["tasks"] = tasks
+    
+        st.dataframe(tasks)
+    
+        responses = []
+    
+        for task in tasks["Task"].unique():
+    
+            subset = tasks[tasks["Task"] == task]
+    
+            choice = st.radio(
+                f"Select preferred option for Task {task}",
+                subset["Profile"].tolist(),
+                key=f"task{task}"
+            )
+    
+            responses.append(choice)
 
     # -----------------------------
     # 4️⃣ SIMULATE RESPONDENTS
