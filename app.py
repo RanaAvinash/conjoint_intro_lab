@@ -100,6 +100,27 @@ if st.button("Simulate Market Share"):
 
 from modules.importance import calculate_importance
 
+from modules.cbc_tasks import generate_choice_tasks
+
+if "profiles" in st.session_state:
+
+    tasks = generate_choice_tasks(st.session_state["profiles"])
+
+    st.subheader("Choice Tasks")
+
+    responses = []
+
+    for task in tasks["Task"].unique():
+
+        subset = tasks[tasks["Task"] == task]
+
+        choice = st.radio(
+            f"Select preferred option for Task {task}",
+            subset["Profile"].tolist()
+        )
+
+        responses.append(choice)
+
 importance = calculate_importance(utilities)
 
 st.subheader("Attribute Importance")
