@@ -10,7 +10,12 @@ from modules.market_simulator import market_share
 from modules.visualization import plot_utilities
 
 st.title("Conjoint Analysis Teaching Lab")
+st.sidebar.header("Conjoint Method")
 
+method = st.sidebar.radio(
+    "Select Conjoint Method",
+    ["Choice Based Conjoint (CBC)", "Rank Based Conjoint"]
+)
 # -----------------------------
 # 1️⃣ ATTRIBUTE BUILDER
 # -----------------------------
