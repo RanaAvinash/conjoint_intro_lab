@@ -28,3 +28,30 @@ for i in range(n_attr):
 
     if attr and levels:
         attributes[attr] = [x.strip() for x in levels.split(",")]
+
+st.header("2️⃣ Generate Profiles")
+
+if st.button("Generate Profiles"):
+
+    profiles = generate_profiles(attributes)
+
+    st.dataframe(profiles)
+
+    st.header("3️⃣ Choice Tasks")
+
+    tasks = generate_choice_tasks(profiles)
+
+    st.dataframe(tasks)
+
+    choices=[]
+
+    for task in tasks["Task"].unique():
+
+        subset = tasks[tasks["Task"]==task]
+
+        choice = st.radio(
+            f"Choose preferred option for Task {task}",
+            subset["Profile"].tolist()
+        )
+
+        choices.append(choice)
