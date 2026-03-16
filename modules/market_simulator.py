@@ -1,61 +1,27 @@
 import numpy as np
 import pandas as pd
 
-def simulate_market(products, utilities):
+def market_share(products, utilities):
 
     scores = []
 
-    for i,row in products.iterrows():
+    for i, row in products.iterrows():
 
-        u = 0
+        utility = 0
 
-        for feature,value in row.items():
+        for attr, level in row.items():
 
-            key = f"{feature}_{value}"
+            key = f"{attr}_{level}"
 
-            if key in utilities["Feature"].values:
-
-                u += utilities.loc[
-                    utilities["Feature"]==key,"Utility"
-                ].values[0]
-
-        scores.append(np.exp(u))
-
-    total = sum(scores)
-
-    shares = [s/total for s in scores]
-
-    products["MarketShare"] = shares
-
-    return products
-
-import numpy as np
-import pandas as pd
-
-def market_share(products,utilities):
-
-    scores=[]
-
-    for i,row in products.iterrows():
-
-        u=0
-
-        for col,val in row.items():
-
-            key=f"{col}_{val}"
-
-            match=utilities[utilities["Feature"]==key]
+            match = utilities[utilities["Feature"] == key]
 
             if not match.empty:
+                utility += match["Utility"].values[0]
 
-                u+=match["Utility"].values[0]
+        scores.append(np.exp(utility))
 
-        scores.append(np.exp(u))
+    shares = np.array(scores) / np.sum(scores)
 
-    total=sum(scores)
-
-    shares=[s/total for s in scores]
-
-    products["Share"]=shares
+    products["MarketShare"] = shares
 
     return products
