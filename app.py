@@ -8,7 +8,7 @@ from modules.estimation import estimate_mnl
 from modules.importance import calculate_importance
 from modules.market_simulator import market_share
 from modules.visualization import plot_utilities
-
+from modules.rank_conjoint import estimate_rank_utilities
 st.title("Conjoint Analysis Teaching Lab")
 st.sidebar.header("Conjoint Method")
 
@@ -53,12 +53,54 @@ if st.button("Generate Profiles") and attributes:
 
     st.subheader("Generated Profiles")
     st.dataframe(profiles)
+if method == "Rank Based Conjoint":
 
+    st.header("Rank the Product Profiles")
+
+    if "profiles" in st.session_state:
+
+        profiles = st.session_state["profiles"]
+
+        st.dataframe(profiles)
+
+        ranks = []
+
+        for i in profiles["Profile"]:
+
+            r = st.number_input(
+                f"Rank for Profile {i}",
+                min_value=1,
+                max_value=len(profiles),
+                value=i,
+                key=f"rank_{i}"
+            )
+
+            ranks.append(r)
+
+        if st.button("Estimate Utilities from Ranking"):
+
+            utilities = estimate_rank_utilities(ranks, profiles)
+
+            st.session_state["utilities"] = utilities
+
+            st.subheader("Estimated Utilities")
+
+            st.dataframe(utilities)
+
+            fig = plot_utilities(utilities)
+
+            st.plotly_chart(fig)
+
+            importance = calculate_importance(utilities)
+
+            st.subheader("Attribute Importance")
+
+            st.dataframe(importance)
 # -----------------------------
 # 3️⃣ GENERATE CBC TASKS
 # -----------------------------
-
-if "profiles" in st.session_state:
+if method == "Choice Based Conjoint (CBC)":
+    if "profiles" in st.session_state:
 
     st.header("3️⃣ Choice Tasks")
 
