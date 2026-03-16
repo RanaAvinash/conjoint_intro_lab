@@ -60,3 +60,30 @@ if st.button("Generate Profiles"):
     st.header("Attribute Importance")
 
     st.dataframe(importance)
+st.header("Market Simulator")
+
+products=[]
+
+for i in range(3):
+
+    st.subheader(f"Product {i+1}")
+
+    product={}
+
+    for attr in attributes:
+
+        product[attr]=st.selectbox(
+            attr,
+            attributes[attr],
+            key=f"{attr}{i}"
+        )
+
+    products.append(product)
+
+products_df=pd.DataFrame(products)
+
+if st.button("Simulate Market Share"):
+
+    result=market_share(products_df,utilities)
+
+    st.dataframe(result)
